@@ -60,7 +60,7 @@ func brew(w http.ResponseWriter, r *http.Request) {
 		sendError(enc, err)
 	}
 
-	err = m.Pour(coffeemachine.Drink(c.Coffee))
+	err = m.Brew(coffeemachine.Beverage(c.Coffee))
 	if err != nil {
 		w.WriteHeader(http.StatusForbidden)
 		sendError(enc, err)

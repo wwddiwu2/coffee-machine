@@ -14,26 +14,26 @@ var _ = Describe("Coffeemachine", func() {
 		m = New()
 	})
 
-	Describe("Pouring drinks", func() {
+	Describe("Brewing drinks", func() {
 		Context("With enough cleanliness", func() {
-			It("Should be poured", func() {
-				Ω(m.Pour(Espresso)).Should(BeNil())
-				Ω(m.Pour(Americano)).Should(BeNil())
+			It("Should be brewed", func() {
+				Ω(m.Brew(Espresso)).Should(BeNil())
+				Ω(m.Brew(Americano)).Should(BeNil())
 			})
 
 			It("Should be dirtied correctly", func() {
 				c := m.Cleanliness()
-				m.Pour(Espresso)
+				m.Brew(Espresso)
 				Ω(c).Should(Equal(m.Cleanliness() + 1))
-				m.Pour(Americano)
+				m.Brew(Americano)
 				Ω(c).Should(Equal(m.Cleanliness() + 3))
 			})
 
 			It("Should set the status correctly", func() {
 				Ω(m.Status()).Should(Equal(Ready))
-				m.Pour(Espresso)
+				m.Brew(Espresso)
 				Ω(m.Status()).Should(Equal(Ready))
-				m.Pour(Americano)
+				m.Brew(Americano)
 				Ω(m.Status()).Should(Equal(Ready))
 			})
 		})
@@ -41,29 +41,29 @@ var _ = Describe("Coffeemachine", func() {
 		Context("With lacking cleanliness (0)", func() {
 			BeforeEach(func() {
 				for i := 0; i < 50; i++ {
-					Ω(m.Pour(Americano)).Should(BeNil())
+					Ω(m.Brew(Americano)).Should(BeNil())
 				}
 			})
 
-			It("Should not be poured", func() {
-				Ω(m.Pour(Espresso)).ShouldNot(BeNil())
-				Ω(m.Pour(Americano)).ShouldNot(BeNil())
+			It("Should not be brewed", func() {
+				Ω(m.Brew(Espresso)).ShouldNot(BeNil())
+				Ω(m.Brew(Americano)).ShouldNot(BeNil())
 			})
 
 			It("Should not be dirtied below 0", func() {
 				c := m.Cleanliness()
-				m.Pour(Espresso)
+				m.Brew(Espresso)
 				Ω(c).Should(Equal(m.Cleanliness()))
-				m.Pour(Americano)
+				m.Brew(Americano)
 				Ω(c).Should(Equal(m.Cleanliness()))
 				Ω(c).Should(BeNumerically(">=", 0))
 			})
 
 			It("Should set the status correctly", func() {
 				Ω(m.Status()).Should(Equal(Ready))
-				m.Pour(Espresso)
+				m.Brew(Espresso)
 				Ω(m.Status()).Should(Equal(Ready))
-				m.Pour(Americano)
+				m.Brew(Americano)
 				Ω(m.Status()).Should(Equal(Ready))
 			})
 		})
