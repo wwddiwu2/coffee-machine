@@ -1,25 +1,60 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/mkqavi/coffee-machine/v0/pkg/coffeemachine"
 )
 
-var m coffeemachine.Machine
+var (
+	m      coffeemachine.Machine
+	logger *log.Logger
+)
 
 func main() {
+	stop := make(chan os.Signal, 1)
+	serveAPI(stop)
+}
+
+func serveAPI(stop chan os.Signal) {
+	signal.Notify(stop, os.Interrupt)
+
 	m = coffeemachine.New()
+	logger = log.New(os.Stdout, "", 0)
 
 	r := mux.NewRouter()
+
+	s := http.Server{
+		Addr:    ":31565",
+		Handler: r,
+	}
+
 	r.HandleFunc("/", machineStatus).Methods("GET")
 	r.HandleFunc("/clean", clean).Methods("POST")
 	r.HandleFunc("/brew", brew).Methods("POST")
 
-	log.Fatal(http.ListenAndServe(":31565", r))
+	go func() {
+		logger.Printf("Listening on http://localhost:31565\n")
+
+		logger.Fatal(s.ListenAndServe())
+	}()
+
+	<-stop
+
+	logger.Printf("\nStopping server...\n")
+
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+
+	s.Shutdown(ctx)
+
+	logger.Printf("Server stopped.\nGoodbye! ☕️")
 }
 
 func machineStatus(w http.ResponseWriter, r *http.Request) {
