@@ -20,10 +20,12 @@ var (
 
 func main() {
 	stop := make(chan os.Signal, 1)
-	serveAPI(stop)
+	<-serveAPI(stop)
 }
 
-func serveAPI(stop chan os.Signal) {
+func serveAPI(stop chan os.Signal) <-chan bool {
+	done := make(chan bool)
+
 	signal.Notify(stop, os.Interrupt)
 
 	m = coffeemachine.New()
@@ -31,7 +33,7 @@ func serveAPI(stop chan os.Signal) {
 
 	r := mux.NewRouter()
 
-	s := http.Server{
+	s := &http.Server{
 		Addr:    ":31565",
 		Handler: r,
 	}
@@ -43,18 +45,33 @@ func serveAPI(stop chan os.Signal) {
 	go func() {
 		logger.Printf("Listening on http://localhost:31565\n")
 
-		logger.Fatal(s.ListenAndServe())
+		err := s.ListenAndServe()
+		if err != nil {
+			logger.Fatal(err)
+		}
 	}()
 
-	<-stop
+	go func() {
+		defer func() {
+			done <- true
+		}()
 
-	logger.Printf("\nStopping server...\n")
+		<-stop
 
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+		logger.Printf("\nStopping server...\n")
 
-	s.Shutdown(ctx)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
 
-	logger.Printf("Server stopped.\nGoodbye! ☕️")
+		err := s.Shutdown(ctx)
+		if err != nil {
+			logger.Fatal(err)
+		}
+
+		logger.Printf("Server stopped.\nGoodbye! ☕️")
+	}()
+
+	return done
 }
 
 func machineStatus(w http.ResponseWriter, r *http.Request) {
