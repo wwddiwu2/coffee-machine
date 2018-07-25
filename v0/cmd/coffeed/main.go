@@ -25,6 +25,7 @@ func main() {
 
 func serveAPI(stop chan os.Signal) <-chan bool {
 	done := make(chan bool)
+	closed := make(chan bool)
 
 	signal.Notify(stop, os.Interrupt)
 
@@ -46,7 +47,9 @@ func serveAPI(stop chan os.Signal) <-chan bool {
 		logger.Printf("Listening on http://localhost:31565\n")
 
 		err := s.ListenAndServe()
-		if err != nil {
+		if err == http.ErrServerClosed {
+			closed <- true
+		} else if err != nil {
 			logger.Fatal(err)
 		}
 	}()
@@ -67,6 +70,8 @@ func serveAPI(stop chan os.Signal) <-chan bool {
 		if err != nil {
 			logger.Fatal(err)
 		}
+
+		<-closed
 
 		logger.Printf("Server stopped.\nGoodbye! ☕️")
 	}()
