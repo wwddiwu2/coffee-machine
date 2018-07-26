@@ -17,27 +17,27 @@ func New() Machine {
 	return Machine{
 		cleanliness:   100,
 		status:        Ready,
-		StatusChannel: make(chan Status),
+		StatusChannel: make(chan Status, 1),
 	}
 }
 
-// Pour pours the give drink
-func (m Machine) Pour(d Drink) error {
+// Brew brews the given drink
+func (m *Machine) Brew(b Beverage) error {
+	bev := b.getBeverage()
 	if m.status != Ready {
-		return errors.New("coffeemachine: the coffee machine is not yet ready to pour")
+		return errors.New("coffeemachine: the coffee machine is not yet ready to brew")
 	}
-	m.changeStatus(Pouring)
-	if d == Americano {
-		m.cleanliness -= 2
-	} else {
-		m.cleanliness--
+	if int(m.cleanliness)-int(bev.erosion) < 0 {
+		return errors.New("coffeemachine: the coffee machine is to dirty to brew")
 	}
+	m.changeStatus(Brewing)
+	m.cleanliness -= bev.erosion
 	m.changeStatus(Ready)
 	return nil
 }
 
 // Clean resets the cleanliness value to 100
-func (m Machine) Clean() error {
+func (m *Machine) Clean() error {
 	if m.status != Ready {
 		return errors.New("coffeemachine: the coffee machine is not yet ready to clean")
 	}
@@ -59,5 +59,9 @@ func (m Machine) Status() Status {
 
 func (m Machine) changeStatus(s Status) {
 	m.status = s
-	m.StatusChannel <- s
+	select {
+	case m.StatusChannel <- s:
+	case <-m.StatusChannel:
+		m.StatusChannel <- s
+	}
 }
