@@ -1,0 +1,83 @@
+openapi: 3.0.0
+info:
+  title: coffeemachine
+  description: A simple API to control a coffee machine.
+  version: 0.2.0
+servers:
+  - url: http://coffee.mkqavi.com/v0
+    description: Production server
+paths:
+  /:
+    get:
+      summary: Returns the overall machine status
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Cleanliness:
+                    type: integer
+                    example: 95
+                    description: 0 - Unusable<br>
+                      100 - Clean
+                  Status:
+                    type: integer
+                    example: 1
+                    description: 0 - Ready<br>
+                      1 - Brewing<br>
+                      2 - Cleaning
+  /clean:
+    post:
+      summary: Cleans the machine
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Error:
+                    type: string
+                    example: "coffeemachine: the coffee machine is not yet ready to clean"
+  /brew:
+    post:
+      summary: Brews a coffee of your choice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                Coffee:
+                  type: integer
+                  example: 1
+                  description: 0 - Espresso<br>
+                    1 - Americano
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Error:
+                    type: string
+                    example: "coffeemachine: the coffee machine is not yet ready to brew"
