@@ -1,4 +1,4 @@
-on: [push, pull_request]
+on: pull_request
 name: Test
 jobs:
   test:
@@ -18,3 +18,13 @@ jobs:
       run: |
           go get -t ./...
           go test -race ./...
+  sonarCloudTrigger:
+    name: SonarCloud Trigger
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: SonarCloud Scan
+      uses: sonarsource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
