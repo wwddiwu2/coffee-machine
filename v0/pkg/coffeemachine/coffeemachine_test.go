@@ -40,7 +40,7 @@ var _ = Describe("Coffeemachine", func() {
 
 		Context("With lacking cleanliness (0)", func() {
 			BeforeEach(func() {
-				for i := 0; i < 50; i++ {
+				for i := 0; i < 5; i++ {
 					Ω(m.Brew(Americano)).Should(BeNil())
 				}
 			})
