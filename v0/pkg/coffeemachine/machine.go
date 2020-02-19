@@ -15,7 +15,7 @@ type Machine struct {
 // New returns a brand new coffee machine
 func New() Machine {
 	return Machine{
-		cleanliness:   100,
+		cleanliness:   10,
 		status:        Ready,
 		StatusChannel: make(chan Status, 1),
 	}
